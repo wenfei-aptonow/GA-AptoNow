@@ -106,7 +106,7 @@ ga <- function(type = c("binary", "real-valued", "permutation"),
                          },
          "permutation" = { lower <- as.vector(lower)[1]
                            upper <- as.vector(upper)[1]
-                           nBits <- NA
+                           nBits <- nBits
                            nvars <- length(seq.int(lower,upper))
                            if(is.null(names))
                              names <- paste0("x", 1:nvars)

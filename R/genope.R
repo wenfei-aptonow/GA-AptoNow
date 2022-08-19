@@ -567,10 +567,10 @@ gareal_powMutation_R <- function(object, parent, pow)
 
 gaperm_Population <- function(object, ...)
 {
-  if(gaControl("useRcpp"))
-    gaperm_Population_Rcpp(object)
-  else
-    gaperm_Population_R(object)
+  #if(gaControl("useRcpp"))
+   # gaperm_Population_Rcpp(object)
+  #else
+  gaperm_Population_R(object)
 }
 
 gaperm_Population_R <- function(object)
@@ -579,7 +579,7 @@ gaperm_Population_R <- function(object)
   n <- length(int)
   population <- matrix(NA, nrow = object@popSize, ncol = n)
   for(i in 1:object@popSize)
-     population[i,] <- sample(int, replace = FALSE)
+     population[i,] <- sapply(object@nBits, function(x) sample(x, replace = FALSE))
   return(population)
 }
 
