@@ -430,13 +430,14 @@ ga <- function(type = c("binary", "real-valued", "permutation"),
 }
 
 setClassUnion("numericOrNA", members = c("numeric", "logical"))
+setClassUnion("numericOrlistOrNA", members = c("numeric", "logical", "list"))
 
 setClass(Class = "ga", 
          representation(call = "language",
                         type = "character",
                         lower = "numericOrNA", 
                         upper = "numericOrNA", 
-                        nBits = "numericOrNA", 
+                        nBits = "numericOrlistOrNA", 
                         names = "character",
                         popSize = "numeric",
                         iter = "numeric", 
