@@ -567,11 +567,11 @@ gareal_powMutation_R <- function(object, parent, pow)
 
 gaperm_Population <- function(object, ...)
 {
-  if(is.na(object@nBits))
-  gaperm_Population_Rcpp(object)
-  else
+  if(is.list(object@nBits))
   gaperm_Population_R(object)
-}
+  else
+  gaperm_Population_Rcpp(object)
+  }
 
 gaperm_Population_R <- function(object)
 {
