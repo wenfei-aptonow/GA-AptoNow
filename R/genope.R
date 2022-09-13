@@ -567,9 +567,9 @@ gareal_powMutation_R <- function(object, parent, pow)
 
 gaperm_Population <- function(object, ...)
 {
-  #if(gaControl("useRcpp"))
-   # gaperm_Population_Rcpp(object)
-  #else
+  if(is.na(object@nBits))
+  gaperm_Population_Rcpp(object)
+  else
   gaperm_Population_R(object)
 }
 
