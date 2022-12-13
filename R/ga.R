@@ -233,12 +233,17 @@ ga <- function(type = c("binary", "real-valued", "permutation"),
                }
       }
       else
-        { Fitness <- foreach(i. = seq_len(popSize), .combine = "c") %DO%
-                     { if(is.na(Fitness[i.])) 
-                         do.call(fitness, c(list(Pop[i.,]), callArgs)) 
-                       else                   
-                         Fitness[i.] 
-                     }
+        { 
+          Fitness <- 
+            foreach(i. = seq_len(popSize), .combine = "c") %DO%
+            { 
+              if(is.na(Fitness[i.])) {
+                do.call(fitness, c(list(Pop[i.,]), callArgs)) 
+              }
+              else {
+                Fitness[i.] 
+              }                
+            }
         }
       
       # update object

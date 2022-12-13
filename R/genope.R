@@ -603,11 +603,17 @@ gaperm_tourSelection_Rcpp <- ga_tourSelection_Rcpp
 
 gaperm_cxCrossover <- function(object, parents, ...)
 {
-  if(gaControl("useRcpp"))
-    gaperm_cxCrossover_Rcpp(object, parents)
-  else
+  if(is.list(object@nBits))
     gaperm_cxCrossover_R(object, parents)
+  else
+    gaperm_cxCrossover_Rcpp(object, parents)
 }
+# {
+#   if(gaControl("useRcpp"))
+#     gaperm_cxCrossover_Rcpp(object, parents)
+#   else
+#     gaperm_cxCrossover_R(object, parents)
+# }
 
 gaperm_cxCrossover_R <- function(object, parents)
 {
