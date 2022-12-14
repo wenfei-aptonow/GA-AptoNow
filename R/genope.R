@@ -619,6 +619,7 @@ gaperm_cxCrossover_R <- function(object, parents)
 {
   parents <- object@population[parents,,drop = FALSE]
   n <- ncol(parents)
+  browser()
   children <- matrix(NA_integer_, nrow = 2, ncol = n) 
   k <- 1 # cx point 
   ALL <- 1:n
@@ -680,32 +681,85 @@ gaperm_pmxCrossover_R <- function(object, parents)
 
 gaperm_oxCrossover <- function(object, parents, ...)
 {
-  if(gaControl("useRcpp"))
-    gaperm_oxCrossover_Rcpp(object, parents)
-  else
+  if(is.list(object@nBits))
     gaperm_oxCrossover_R(object, parents)
+  else
+    gaperm_oxCrossover_Rcpp(object, parents)
+  
+  # if(gaControl("useRcpp"))
+  #   gaperm_oxCrossover_Rcpp(object, parents)
+  # else
+  #   gaperm_oxCrossover_R(object, parents)
 }
 
 gaperm_oxCrossover_R <- function(object, parents)
 {
   parents <- object@population[parents,,drop = FALSE]
   n <- ncol(parents)
-  #
-  cxPoints <- sample(seq(2,n-1), size = 2)
-  cxPoints <- seq(min(cxPoints), max(cxPoints))
-  children <- matrix(as.double(NA), nrow = 2, ncol = n)
-  children[,cxPoints] <- parents[,cxPoints]
-  #
-  for(j in 1:2)
-     { pos <- c((max(cxPoints)+1):n, 1:(max(cxPoints)))
-       val <- setdiff(parents[-j,pos], children[j,cxPoints])
-       ival <- intersect(pos, which(is.na(children[j,])))
-       children[j,ival] <- val
-     }
-  #
+  ven_segments <- object@nBits
+  
+  used_genes <- 0 
+  segments <- list()
+  
+  for(i in 1:length(ven_segments)){
+    
+    segment_length <- length(ven_segments[[i]])
+    segment <- 1:segment_length + used_genes
+    
+    used_genes <- used_genes + segment_length
+    
+    segments[[i]] <- segment
+  }
+  
+  # crossover each segment independently
+  crossover_segment <- function(segment, parents) {
+    
+    prnts <- parents[ ,segment]
+    
+    n <- ncol(prnts)
+    #
+    cxPoints <- sample(seq(2,n-1), size = 2)
+    cxPoints <- seq(min(cxPoints), max(cxPoints))
+    children <- matrix(as.double(NA), nrow = 2, ncol = n)
+    children[,cxPoints] <- prnts[,cxPoints]
+    #
+    for(j in 1:2){ 
+      pos <- c((max(cxPoints)+1):n, 1:(max(cxPoints)))
+      val <- setdiff(prnts[-j,pos], children[j,cxPoints])
+      ival <- intersect(pos, which(is.na(children[j,])))
+      children[j,ival] <- val
+    }
+    #
+    return(children)
+  }
+  
+  # perform segmented crossover
+  children <- do.call("cbind", lapply(segments, crossover_segment, parents = parents))
   out <- list(children = children, fitness = rep(NA,2))
+  #
   return(out)
 }
+
+# gaperm_oxCrossover_R <- function(object, parents)
+# {
+#   parents <- object@population[parents,,drop = FALSE]
+#   n <- ncol(parents)
+#   #
+#   cxPoints <- sample(seq(2,n-1), size = 2)
+#   cxPoints <- seq(min(cxPoints), max(cxPoints))
+#   children <- matrix(as.double(NA), nrow = 2, ncol = n)
+#   children[,cxPoints] <- parents[,cxPoints]
+#   #
+#   for(j in 1:2)
+#      { pos <- c((max(cxPoints)+1):n, 1:(max(cxPoints)))
+#        val <- setdiff(parents[-j,pos], children[j,cxPoints])
+#        ival <- intersect(pos, which(is.na(children[j,])))
+#        children[j,ival] <- val
+#      }
+#   #
+#   out <- list(children = children, fitness = rep(NA,2))
+#   return(out)
+# }
 
 # Position-based crossover (PBX) ----
 

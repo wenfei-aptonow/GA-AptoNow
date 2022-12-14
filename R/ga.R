@@ -345,8 +345,8 @@ ga <- function(type = c("binary", "real-valued", "permutation"),
                    Crossover <- crossover(object, parents)
                    Pop[parents,] <- Crossover$children
                    Fitness[parents] <- Crossover$fitness
-                 }
-             }             
+                   }
+          }
           object@population <- Pop
           object@fitness <- Fitness
         }
