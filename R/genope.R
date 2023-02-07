@@ -692,11 +692,77 @@ gaperm_oxCrossover <- function(object, parents, ...)
   #   gaperm_oxCrossover_R(object, parents)
 }
 
+# crossover each segment independently for gaperm_oxCrossover_R below
+
+# check validity issues with children
+check_child_validity_issues <- function(ven_segments, children) {
+  
+  # get the length of the segments
+  length_segs <- sapply(ven_segments, length)
+  n_segs <- length(length_segs)
+  
+  # get the indexes of the segments 
+  end_points <- cumsum(length_segs)
+  start_points <- c(1, end_points[1:(n_segs-1)]+1)
+  seg_ranges <- mapply(
+    function(x,y) x:y,
+    start_points,
+    end_points
+  )
+  
+  # find any issues with the children 
+  child_issues <- sapply(
+    1:nrow(children),
+    
+    # find issues per child
+    function(i, children, seg_ranges, ven_segments){
+      
+      # isolate ith child
+      child <- children[i, ]
+      
+      # find issues per segment
+      segment_issues <- sapply(
+        1:length(seg_ranges),
+        
+        function(j, seg_ranges, child, ven_segments) {
+          
+          # get the jth segment from child
+          child_segment <- child[seg_ranges[[j]]]
+          # get specified segment values
+          segment <- ven_segments[[j]]
+          # check to make sure specified segment values match child segment values
+          result <- length(setdiff(child_segment, segment)) > 0
+          return(result)
+        },
+        
+        seg_ranges = seg_ranges,
+        child = child,
+        ven_segments = ven_segments
+      )
+      
+      result <- any(segment_issues)
+      return(result)
+    },
+    
+    children = children,
+    seg_ranges = seg_ranges,
+    ven_segments = ven_segments
+  )
+  
+  result <- any(child_issues)
+  return(result)
+}
+
+# oxCrossover_R 
 gaperm_oxCrossover_R <- function(object, parents)
 {
-  parents <- object@population[parents,,drop = FALSE]
-  n <- ncol(parents)
+  cx_parents <- object@population[parents,,drop = FALSE]
+  n <- ncol(cx_parents)
   ven_segments <- object@nBits
+  
+  # run validity function. 
+  parent_issues <- check_child_validity_issues(ven_segments, cx_parents)
+  stopifnot("Invalid parents input into crossover function" = !parent_issues)
   
   used_genes <- 0 
   segments <- list()
@@ -711,30 +777,47 @@ gaperm_oxCrossover_R <- function(object, parents)
     segments[[i]] <- segment
   }
   
-  # crossover each segment independently
-  crossover_segment <- function(segment, parents) {
+  # ++++++++++++++++++++ Alpha Function for segment crosover +++++++++++++++++++
+  crossover_segment <- function(segment, cx_parents) { #ven_segment, for checking
     
-    prnts <- parents[ ,segment]
+    prnts_seg <- cx_parents[ ,segment]
     
-    n <- ncol(prnts)
+    m <- ncol(prnts_seg)
     #
-    cxPoints <- sample(seq(2,n-1), size = 2)
+    cxPoints <- sample(seq(2,m-1), size = 2)
     cxPoints <- seq(min(cxPoints), max(cxPoints))
-    children <- matrix(as.double(NA), nrow = 2, ncol = n)
-    children[,cxPoints] <- prnts[,cxPoints]
+    children <- matrix(as.double(NA), nrow = 2, ncol = m)
+    children[,cxPoints] <- prnts_seg[,cxPoints]
     #
     for(j in 1:2){ 
-      pos <- c((max(cxPoints)+1):n, 1:(max(cxPoints)))
-      val <- setdiff(prnts[-j,pos], children[j,cxPoints])
+      pos <- c((max(cxPoints)+1):m, 1:(max(cxPoints)))
+      val <- setdiff(prnts_seg[-j,pos], children[j,cxPoints])
       ival <- intersect(pos, which(is.na(children[j,])))
       children[j,ival] <- val
+      
+      # check
+      # if(length(setdiff(children[j, ], ven_segment)) != 0){
+      #   browser()
+      # }
     }
-    #
+    
     return(children)
   }
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  
+  
   
   # perform segmented crossover
-  children <- do.call("cbind", lapply(segments, crossover_segment, parents = parents))
+  children <- do.call("cbind", lapply(segments, 
+                                      crossover_segment, # ven_segments, for checking
+                                      cx_parents = cx_parents # MoreArgs = list()
+                                      )
+  )
+  
+  # run validity function. 
+  # child_issues <- check_child_validity_issues(ven_segments, children)
+  # stopifnot(!child_issues)
+  
   out <- list(children = children, fitness = rep(NA,2))
   #
   return(out)

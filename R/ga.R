@@ -340,12 +340,25 @@ ga <- function(type = c("binary", "real-valued", "permutation"),
         { nmating <- floor(popSize/2)
           mating <- matrix(sample(1:(2*nmating), size = (2*nmating)), ncol = 2)
           for(i in seq_len(nmating))
-             { if(pcrossover > runif(1))
-                 { parents <- mating[i,]
-                   Crossover <- crossover(object, parents)
-                   Pop[parents,] <- Crossover$children
-                   Fitness[parents] <- Crossover$fitness
-                   }
+             { if(pcrossover > runif(1)){ 
+               parents <- mating[i,]
+               
+               # run validity function. 
+               # cx_par <- object@population[parents,,drop = FALSE]
+               # ven_segs <- object@nBits
+               # par_issues <- check_child_validity_issues(ven_segs, cx_par)
+               # if(par_issues){browser()}
+               
+               Crossover <- crossover(object, parents)
+               
+               # run validity function. 
+               # chldrn <- Crossover$children
+               # chldrn_issues <- check_child_validity_issues(ven_segs, chldrn)
+               # if(chldrn_issues){browser()}
+               
+               Pop[parents,] <- Crossover$children
+               Fitness[parents] <- Crossover$fitness
+             }
           }
           object@population <- Pop
           object@fitness <- Fitness
