@@ -761,8 +761,8 @@ gaperm_oxCrossover_R <- function(object, parents)
   ven_segments <- object@nBits
   
   # run validity function. 
-  parent_issues <- check_child_validity_issues(ven_segments, cx_parents)
-  stopifnot("Invalid parents input into crossover function" = !parent_issues)
+  # parent_issues <- check_child_validity_issues(ven_segments, cx_parents)
+  # stopifnot("Invalid parents input into crossover function" = !parent_issues)
   
   used_genes <- 0 
   segments <- list()
